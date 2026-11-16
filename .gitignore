@@ -1,0 +1,13 @@
+# Python
+.venv/
+__pycache__/
+
+# JavaScript
+node_modules/
+
+# Local data and secrets
+*.db
+.env
+
+# Mac system files
+.DS_Store
