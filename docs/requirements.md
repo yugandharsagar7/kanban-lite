@@ -61,8 +61,8 @@ plus a Delayed column for problems.
 - Supplier: id, name, phone, address
 - Ingredient: id, name, unit (kg, litres, dozen, pieces), price_per_unit,
   regular_restock_qty, usual_delivery_days, supplier_id
-- Column: id, name, position
-- RestockCard: id, ingredient_id, quantity, column_id, expected_delivery_date,
+- RestockStatus: id, name, position
+- RestockCard: id, ingredient_id, quantity, status_id, expected_delivery_date,
   delay_reason, delay_next_action, created_at, position
 - CardEvent: id, card_id, from_column, to_column, actor, timestamp, note
 - ReviewSignOff: id, date, session (morning or afternoon), signed_by,
