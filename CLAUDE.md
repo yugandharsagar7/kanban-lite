@@ -21,12 +21,16 @@ briefly the first time.
 6. **`docs/requirements.md` is the source of truth.** Check it before building
    anything. If my request conflicts with it, or the feature is listed under
    "Out of scope for v1", point that out before doing anything.
+7. **Use `Decimal` for money and quantities, never `float`.**
 
 ## About the project
 A restocking board for a fictional bakery, "Sunrise Bakery". Kitchen staff flag
-ingredients that are running low, and each restock card moves through
-Running low → Chef approved → Owner approved → Ordered → Restocked
-(plus a Delayed column).
+ingredients that are running low, and each restock card moves across the board
+until it is restocked.
+
+All business rules (board columns, card movement rules, roles, data model and
+non-functional requirements) are defined in `docs/requirements.md`, which is
+the single source of truth. Don't copy those rules into this file.
 
 - `backend/`: the Python API (FastAPI + SQLModel). `main.py` is the app,
   `models.py` defines the database tables.
@@ -37,11 +41,3 @@ Commands (run from `backend/`):
 - Activate the Python environment: `source .venv/bin/activate`
 - Start the API: `uvicorn main:app --reload`, then open http://127.0.0.1:8000/health
 - Run tests: `pytest`
-
-## Rules from the requirements to keep in mind
-- Store times in UTC; show them in the bakery's local time.
-- Use `Decimal` for money and quantities, never `float`.
-- Moving a card to Delayed needs a reason and a next action.
-- All data changes go through the API.
-- No sign-in in v1: anyone can do any action.
-- Record only that an order was paid; never store card details.
