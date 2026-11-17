@@ -101,8 +101,11 @@ approval, and the card history records who moved it and when.
   reason and next action in its note, so past delays stay in the history. An
   edit records what changed, from and to, in its note. from_status_id and
   to_status_id are filled only for moves (and to_status_id for created).
-- ReviewSignOff: id, date, session (morning or afternoon), signed_by,
+- ReviewSignOff: id, business_date, session (morning or afternoon), signed_by,
   signed_at, items_reviewed
+
+  business_date is the bakery's local date the review belongs to; signed_at is
+  the exact time in UTC.
 
 Each card keeps the unit price and supplier at the time of the order, so
 later price or supplier changes don't alter past orders or reports.

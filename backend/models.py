@@ -47,3 +47,11 @@ class CardEvent(SQLModel, table=True):
     actor: str
     note: str | None = None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ReviewSignOff(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    business_date: date
+    session: str
+    signed_by: str
+    items_reviewed: int
+    signed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
