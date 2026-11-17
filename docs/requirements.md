@@ -92,7 +92,15 @@ approval, and the card history records who moved it and when.
 - RestockCard: id, ingredient_id, status_id, supplier_id, quantity,
   unit_price, expected_delivery_date, delay_reason, delay_next_action,
   position, created_at, deleted_at, deleted_by, deleted_reason
-- CardEvent: id, card_id, from_column, to_column, actor, timestamp, note
+- CardEvent: id, card_id, action, from_status_id, to_status_id, actor, note,
+  timestamp
+
+  action is one of: created, moved, edited, deleted. A move back one step must
+  include a note. Deletes are also recorded as events, so the history is complete.
+  A delete must include the reason as its note. A move to Delayed records the
+  reason and next action in its note, so past delays stay in the history. An
+  edit records what changed, from and to, in its note. from_status_id and
+  to_status_id are filled only for moves (and to_status_id for created).
 - ReviewSignOff: id, date, session (morning or afternoon), signed_by,
   signed_at, items_reviewed
 
