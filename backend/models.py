@@ -34,3 +34,16 @@ class RestockCard(SQLModel, table=True):
     delay_next_action: str | None = None
     position: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    deleted_at: datetime | None = None
+    deleted_by: str | None = None
+    deleted_reason: str | None = None
+
+class CardEvent(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    card_id: int = Field(foreign_key="restockcard.id")
+    action: str
+    from_status_id: int | None = Field(default=None, foreign_key="restockstatus.id")
+    to_status_id: int | None = Field(default=None, foreign_key="restockstatus.id")
+    actor: str
+    note: str | None = None
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
