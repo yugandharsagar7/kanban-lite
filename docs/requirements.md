@@ -39,6 +39,10 @@ approval, and the card history records who moved it and when.
 - Only the bakery manager can delete a card (for example, one created by
   mistake). Delete needs a reason. A deleted card is hidden from the board
   but kept in the history. Role rules are enforced once sign-in is added.
+- The bakery manager marks a card paid once it is in Ordered or later
+  (Ordered, Delayed or Restocked). The card records who marked it and when.
+- A card that has been marked paid cannot move back from Ordered.
+- A card that has been marked paid cannot be deleted.
 
 ## User stories (v1)
 1. As a kitchen assistant, I can create a restock card for an ingredient. It
@@ -65,6 +69,7 @@ approval, and the card history records who moved it and when.
     Owner review.
 11. As a bakery manager, I can delete a card created by mistake, with a
     reason. It is hidden from the board but kept in the history.
+12. As a bakery manager, I can mark a card paid once it is in Ordered or later.
 
 ## Out of scope for v1 (planned later)
 - Sign-in and role rules (only the owner can move a card on from Owner review, and so on)
@@ -74,12 +79,21 @@ approval, and the card history records who moved it and when.
 - Reports over time (week, month, 3, 6 and 12 months) and usage metrics
 - Mobile layout; more than one bakery
 
+## Open questions
+- How are refunds or cancelled paid orders handled? Out of scope for v1.
+
 ## Non-functional requirements
 - Works in Chrome and Edge.
 - The board loads in under 2 seconds with 200 cards.
 - All data changes go through the API.
 - Times are stored in UTC and shown in the bakery's local time.
 - Money and quantities are stored exactly, with no rounding errors.
+- Quantities keep up to 3 decimal places and unit prices up to 4. A value with
+  more decimal places is rejected with a clear message, never rounded.
+- Totals are rounded to 2 decimal places only for display; calculations use
+  the full values.
+- In v1 (SQLite), all money calculations are done in Python, never in the
+  database. See docs/decisions/0001-money-storage.md.
 - Payments: the app records only that an order was paid. It never stores
   card details.
 - All demo data is made up.
@@ -91,12 +105,14 @@ approval, and the card history records who moved it and when.
 - RestockStatus: id, name, position
 - RestockCard: id, ingredient_id, status_id, supplier_id, quantity,
   unit_price, expected_delivery_date, delay_reason, delay_next_action,
-  position, created_at, deleted_at, deleted_by, deleted_reason
+  position, created_at, paid_at, paid_by, deleted_at, deleted_by,
+  deleted_reason
 - CardEvent: id, card_id, action, from_status_id, to_status_id, actor, note,
   timestamp
 
-  action is one of: created, moved, edited, deleted. A move back one step must
-  include a note. Deletes are also recorded as events, so the history is complete.
+  action is one of: created, moved, edited, paid, deleted. A move back one step
+  must include a note. Marking a card paid records a "paid" event. Deletes are
+  also recorded as events, so the history is complete.
   A delete must include the reason as its note. A move to Delayed records the
   reason and next action in its note, so past delays stay in the history. An
   edit records what changed, from and to, in its note. from_status_id and
