@@ -1,4 +1,4 @@
-"""Database connection for the Kanban Lite API."""
+    """Database connection for the Kanban Lite API."""
 
 import os
 from pathlib import Path
