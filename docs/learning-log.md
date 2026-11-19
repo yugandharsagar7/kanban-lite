@@ -4,6 +4,32 @@ What I built each session, the ideas that mattered, the decisions I made and why
 and what went wrong. Newest first. The "In my own words" line in each entry is
 mine to fill in.
 
+## 2026-11-19: Model tests
+
+**Built:** `backend/test_models.py` (with Claude Code): 30 test runs covering every
+database rule, all passing in 0.24 seconds. `database.py` now builds its engine
+with `make_engine()`, which the tests use too.
+
+**Key ideas**
+- A test is a small saved program that checks one rule. `pytest -v` reruns them
+  all and lists each as PASSED or FAILED.
+- A fixture is setup that pytest runs before a test that asks for it. Here, each
+  test gets a fresh in-memory database, so tests never touch `kanban.db`.
+- Tests must use the same setup as the app. One shared `make_engine()` function
+  means the tests can't run without the foreign-key checks the app uses.
+- `pytest.raises(IntegrityError)` passes only if the database refuses a bad row.
+- `@pytest.mark.parametrize` runs one test with several inputs.
+- A regression test stops something already fixed from breaking again (the
+  3- and 4-decimal storage test).
+- When `models.py` changes, delete `kanban.db` and recreate it: `create_all`
+  never updates existing tables.
+
+**What went wrong:** four stray spaces at the start of `database.py` broke the file,
+and that broken version was committed. Lesson: check before every commit
+(`pytest`, or `python -c "import database, models"`).
+
+**In my own words:**
+
 ## 2026-11-18: Database setup
 
 **Built:** `backend/database.py` (with Claude Code), and the first real database,
