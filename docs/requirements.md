@@ -87,6 +87,9 @@ approval, and the card history records who moved it and when.
 - The board loads in under 2 seconds with 200 cards.
 - All data changes go through the API.
 - Times are stored in UTC and shown in the bakery's local time.
+- The bakery's time zone is America/New_York. 'Today', business dates and the
+  12:00 and 17:00 review deadlines use this time zone. Times are still stored
+  in UTC.
 - Money and quantities are stored exactly, with no rounding errors.
 - Quantities keep up to 3 decimal places and unit prices up to 4. A value with
   more decimal places is rejected with a clear message, never rounded.
