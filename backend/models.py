@@ -25,7 +25,28 @@ class CardAction(str, Enum):
     deleted = "deleted"
 
 
-def enum_column(enum_class, name):
+class Role(str, Enum):
+    # Stored as codes without spaces, so they can match Entra ID app role values.
+    kitchen_assistant = "kitchen_assistant"
+    head_chef = "head_chef"
+    bakery_manager = "bakery_manager"
+    owner = "owner"
+
+    @property
+    def display_name(self) -> str:
+        """The name shown on the board, e.g. "Bakery Manager"."""
+        return ROLE_DISPLAY_NAMES[self]
+
+
+ROLE_DISPLAY_NAMES = {
+    Role.kitchen_assistant: "Kitchen Assistant",
+    Role.head_chef: "Head Chef",
+    Role.bakery_manager: "Bakery Manager",
+    Role.owner: "Owner",
+}
+
+
+def enum_column(enum_class, name, nullable=False):
     """A database column that only accepts this Enum's values."""
     return Column(
         SAEnum(
@@ -35,7 +56,7 @@ def enum_column(enum_class, name):
             create_constraint=True,
             validate_strings=True,
         ),
-        nullable=False,
+        nullable=nullable,
     )
 
 
@@ -60,9 +81,20 @@ class Ingredient(SQLModel, table=True):
     supplier_id: int = Field(foreign_key="supplier.id")
 
 class RestockStatus(SQLModel, table=True):
+    __table_args__ = (
+        CheckConstraint(
+            "(is_final = 1 AND responsible_role IS NULL)"
+            " OR (is_final = 0 AND responsible_role IS NOT NULL)",
+            name="ck_status_role_unless_final",
+        ),
+    )
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(unique=True)
     position: int = Field(unique=True)
+    responsible_role: Role | None = Field(
+        default=None, sa_column=enum_column(Role, "role", nullable=True)
+    )
+    is_final: bool = False
 
 class RestockCard(SQLModel, table=True):
     __table_args__ = (

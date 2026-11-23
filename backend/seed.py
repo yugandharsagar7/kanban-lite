@@ -20,19 +20,21 @@ from models import (
     RestockStatus,
     ReviewSession,
     ReviewSignOff,
+    Role,
     Supplier,
     Unit,
 )
 from settings import BAKERY_TIMEZONE, bakery_today
 
-# The six columns, in board order (from docs/requirements.md).
-STATUS_NAMES = [
-    "Running low",
-    "Manager review",
-    "Owner review",
-    "Ordered",
-    "Restocked",
-    "Delayed",
+# The six columns, in board order, with whose turn it is and whether the
+# column is final (from docs/requirements.md).
+STATUSES = [
+    ("Running low", Role.head_chef, False),
+    ("Manager review", Role.bakery_manager, False),
+    ("Owner review", Role.owner, False),
+    ("Ordered", Role.bakery_manager, False),
+    ("Restocked", None, True),
+    ("Delayed", Role.bakery_manager, False),
 ]
 
 # Made-up people.
@@ -85,8 +87,10 @@ def seed(engine):
 def add_statuses(session):
     """The six columns, in board order. Returns them by name."""
     statuses = {}
-    for position, name in enumerate(STATUS_NAMES, start=1):
-        statuses[name] = RestockStatus(name=name, position=position)
+    for position, (name, role, is_final) in enumerate(STATUSES, start=1):
+        statuses[name] = RestockStatus(
+            name=name, position=position, responsible_role=role, is_final=is_final
+        )
         session.add(statuses[name])
     session.flush()  # send to the database now, so each row gets its id
     return statuses

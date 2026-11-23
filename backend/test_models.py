@@ -22,6 +22,7 @@ from models import (
     RestockStatus,
     ReviewSession,
     ReviewSignOff,
+    Role,
     Supplier,
     Unit,
 )
@@ -63,7 +64,10 @@ def saved_basics(session):
             supplier_id=supplier.id,
         ),
     )
-    status = save(session, RestockStatus(name="Running low", position=1))
+    status = save(
+        session,
+        RestockStatus(name="Running low", position=1, responsible_role=Role.head_chef),
+    )
     # A dictionary: a set of labelled items, looked up by label, e.g. basics["status"].
     return {"supplier": supplier, "ingredient": ingredient, "status": status}
 
@@ -131,6 +135,7 @@ def test_valid_rows_are_accepted(session, saved_basics):
         session,
         CardEvent(card_id=card.id, action=CardAction.created, to_status_id=card.status_id, actor="Kitchen Jo"),
     )
+    save(session, RestockStatus(name="Restocked", position=5, is_final=True))
 
 
 # ---------------------------------------------------------------------------
@@ -158,6 +163,24 @@ def test_unknown_review_session_is_rejected(session):
         )
 
 
+def test_unknown_role_is_rejected(session):
+    with pytest.raises(IntegrityError):
+        run_sql(
+            session,
+            "INSERT INTO restockstatus (name, position, responsible_role, is_final)"
+            " VALUES ('Tasting', 7, 'Bakery Manager', 0)",
+        )
+
+
+def test_every_role_has_a_display_name():
+    assert {role: role.display_name for role in Role} == {
+        Role.kitchen_assistant: "Kitchen Assistant",
+        Role.head_chef: "Head Chef",
+        Role.bakery_manager: "Bakery Manager",
+        Role.owner: "Owner",
+    }
+
+
 def test_unknown_card_action_is_rejected(session, saved_basics):
     card = save(session, make_card(saved_basics))
     with pytest.raises(IntegrityError):
@@ -175,15 +198,30 @@ def test_unknown_card_action_is_rejected(session, saved_basics):
 
 
 def test_duplicate_column_name_is_rejected(session):
-    save(session, RestockStatus(name="Ordered", position=4))
+    save(session, RestockStatus(name="Ordered", position=4, responsible_role=Role.bakery_manager))
     with pytest.raises(IntegrityError):
-        save(session, RestockStatus(name="Ordered", position=9))
+        save(session, RestockStatus(name="Ordered", position=9, responsible_role=Role.bakery_manager))
 
 
 def test_duplicate_column_position_is_rejected(session):
-    save(session, RestockStatus(name="Ordered", position=4))
+    save(session, RestockStatus(name="Ordered", position=4, responsible_role=Role.bakery_manager))
     with pytest.raises(IntegrityError):
-        save(session, RestockStatus(name="Restocked", position=4))
+        save(session, RestockStatus(name="Restocked", position=4, is_final=True))
+
+
+def test_status_that_is_not_final_needs_a_role(session):
+    with pytest.raises(IntegrityError):
+        save(session, RestockStatus(name="Ordered", position=4, is_final=False))
+
+
+def test_final_status_cannot_have_a_role(session):
+    with pytest.raises(IntegrityError):
+        save(
+            session,
+            RestockStatus(
+                name="Restocked", position=5, is_final=True, responsible_role=Role.bakery_manager
+            ),
+        )
 
 
 def test_second_signoff_for_same_date_and_session_is_rejected(session):

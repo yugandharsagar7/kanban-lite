@@ -4,7 +4,7 @@ import pytest
 from sqlmodel import Session, select
 
 from database import make_engine
-from models import CardAction, CardEvent, RestockCard, RestockStatus
+from models import CardAction, CardEvent, RestockCard, RestockStatus, Role
 from seed import seed
 
 
@@ -56,3 +56,18 @@ def test_every_card_history_ends_at_its_current_status(engine):
             assert last_placement.to_status_id == card.status_id, (
                 f"card {card.id}'s history ends in a different column"
             )
+
+
+def test_each_status_has_its_role_and_final_flag(engine):
+    seed(engine)
+    with Session(engine) as session:
+        statuses = session.exec(select(RestockStatus).order_by(RestockStatus.position)).all()
+    # Written out from "Board columns" in docs/requirements.md.
+    assert [(s.name, s.responsible_role, s.is_final) for s in statuses] == [
+        ("Running low", Role.head_chef, False),
+        ("Manager review", Role.bakery_manager, False),
+        ("Owner review", Role.owner, False),
+        ("Ordered", Role.bakery_manager, False),
+        ("Restocked", None, True),
+        ("Delayed", Role.bakery_manager, False),
+    ]
