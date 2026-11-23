@@ -4,6 +4,40 @@ What I built each session, the ideas that mattered, the decisions I made and why
 and what went wrong. Newest first. The "In my own words" line in each entry is
 mine to fill in.
 
+## 2026-11-21 to 22: Seed data, first data endpoints, accountability
+
+**Built:** `backend/settings.py` and `backend/seed.py` with tests (with Claude Code).
+`GET /statuses` and `GET /board`, plus `backend/schemas.py` (typed myself).
+Requirements for overdue cards, whose turn it is, final status and completion.
+
+**Key ideas**
+- The seed is rerunnable: it drops and recreates every table, so it also rebuilds
+  the database after a model change. A safety catch refuses anything but SQLite.
+- The bakery's time zone (America/New_York) is a business rule, not the server's
+  clock. Cloud servers run in UTC, so "today" comes from `bakery_today()`.
+- One path builds both a card and its history, so they can't disagree.
+- `flush()` gives rows their ids; one `commit()` at the end saves everything or
+  nothing. That's a transaction.
+- A test must check against an independent source, not the code's own values.
+- Never show secrets such as `DATABASE_URL` in error messages or logs.
+- A JOIN combines tables through their foreign keys.
+- `Depends(get_session)` is dependency injection: FastAPI supplies the session.
+- Response models (no `table=True`) shape the API's answer: nested, only what
+  the screen needs, plus calculated values like `estimated_total`.
+- The API sends `Decimal` as text so values arrive exactly; the screen rounds.
+- Sort by position, then id, so ties always come back in the same order.
+
+**Design decisions (mine)**
+- Responsible versus accountable: each column has a role whose turn it is, but
+  the Bakery Manager is accountable from owner approval until the card is complete.
+- Restocked is a final status with no next step forward, but a card is only
+  complete when it is restocked and paid. Unpaid restocked cards show
+  "Awaiting payment (Bakery Manager)".
+- A restocked card can move back to Ordered, with a note, for a wrong delivery.
+- Overdue means past the expected delivery date and still in Ordered or Delayed.
+
+**In my own words:**
+
 ## 2026-11-19: Model tests
 
 **Built:** `backend/test_models.py` (with Claude Code): 30 test runs covering every
