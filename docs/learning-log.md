@@ -26,6 +26,17 @@ Requirements for overdue cards, whose turn it is, final status and completion.
   the screen needs, plus calculated values like `estimated_total`.
 - The API sends `Decimal` as text so values arrive exactly; the screen rounds.
 - Sort by position, then id, so ties always come back in the same order.
+- Roles are stored as codes (`bakery_manager`), because Entra ID app role values
+  can't contain spaces. Display names ("Bakery Manager") come from one place.
+- API tests use `TestClient`, `dependency_overrides` (swap the database) and
+  `monkeypatch` (swap the start-up hook), so they never touch `kanban.db`.
+- Boundary testing: check just either side of a rule's edge ("due today" is not
+  overdue, "due yesterday" is). Fix "today" in tests so results never depend on
+  the clock.
+- A test that can't fail protects nothing: deliberately break the code and
+  check the tests notice.
+- Before installing a package a warning names, check who publishes it
+  (typosquatting). `httpx2` is from the Pydantic team and Starlette adopted it.
 
 **Design decisions (mine)**
 - Responsible versus accountable: each column has a role whose turn it is, but
