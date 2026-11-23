@@ -14,7 +14,7 @@ what is needed, what is approved and what is late.
 - Bakery Manager: reviews cards in Manager review, confirms the supplier and
   exact price, sends them to the owner, places orders, handles delays, and
   can delete cards created by mistake.
-- Owner: gives final approval, seeing the estimated total.
+- Owner: gives the last approval before ordering, seeing the estimated total.
 
 In v1 there is no sign-in, and anyone can do any action. Role rules come with
 sign-in in a later version.
@@ -26,6 +26,24 @@ plus Delayed.
 Each column shows whose turn it is. Moving a card forward is that person's
 approval, and the card history records who moved it and when.
 
+Each status records the role whose turn it is to act on cards in that column:
+- Running low: Head Chef
+- Manager review: Bakery Manager
+- Owner review: Owner
+- Ordered: Bakery Manager
+- Delayed: Bakery Manager
+- Restocked: none (final status)
+
+Once sign-in is added, the same field decides who may move cards out of that
+column.
+
+Restocked is a final, success status with no next step forward, so it has no
+role. A status records whether it is final.
+
+From owner approval until the card is complete, the Bakery Manager is
+accountable for the restock, including supplier problems and delays. A card is
+complete when it is in Restocked and marked paid.
+
 ## Card movement rules
 - A card moves one step at a time, forward or back.
 - Moving a card back requires a note explaining why. The person in the
@@ -34,6 +52,8 @@ approval, and the card history records who moved it and when.
   back to Manager review with a note.
 - A card can move to Delayed only from Ordered, with a reason and a next
   action, and returns to Ordered when the problem is solved.
+- A restocked card can move back to Ordered, with a note (for example, a
+  wrong delivery).
 - The unit price can be edited only in Manager review. It locks when the
   card moves to Owner review, and unlocks if it moves back.
 - Only the bakery manager can delete a card (for example, one created by
@@ -43,6 +63,13 @@ approval, and the card history records who moved it and when.
   (Ordered, Delayed or Restocked). The card records who marked it and when.
 - A card that has been marked paid cannot move back from Ordered.
 - A card that has been marked paid cannot be deleted.
+
+## Board display
+- A card is overdue when its expected delivery date is before the bakery's
+  today and it is in Ordered or Delayed. The board marks overdue cards.
+- The board shows each delayed card's reason and next action.
+- A restocked card that isn't paid yet shows "Awaiting payment (Bakery
+  Manager)".
 
 ## User stories (v1)
 1. As a kitchen assistant, I can create a restock card for an ingredient. It
@@ -62,7 +89,7 @@ approval, and the card history records who moved it and when.
 7. As anyone, I can see a card's history: who moved it, when, and from which
    column to which.
 8. As anyone, I can filter cards by supplier or ingredient, or show in-progress
-   orders with their expected delivery date.
+   orders (in Ordered or Delayed) with their expected delivery date.
 9. As anyone, when I move a card back one step, I must enter a note
    explaining why.
 10. As a bakery manager, I can edit a card's unit price until I move it to
@@ -105,7 +132,10 @@ approval, and the card history records who moved it and when.
 - Supplier: id, name, phone, address
 - Ingredient: id, name, unit (kg, litres, dozen, pieces), price_per_unit,
   regular_restock_qty, usual_delivery_days, supplier_id
-- RestockStatus: id, name, position
+- RestockStatus: id, name, position, responsible_role, is_final
+
+  responsible_role is one of the roles under "Users (roles)". It is empty only
+  for final statuses, and is_final is true only for Restocked.
 - RestockCard: id, ingredient_id, status_id, supplier_id, quantity,
   unit_price, expected_delivery_date, delay_reason, delay_next_action,
   position, created_at, paid_at, paid_by, deleted_at, deleted_by,
