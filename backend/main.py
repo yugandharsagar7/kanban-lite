@@ -1,17 +1,47 @@
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI
 from sqlmodel import Session, select
 
-from database import get_session
+from database import create_db_and_tables, get_session
 from models import Ingredient, RestockCard, RestockStatus, Supplier
-from schemas import CardOut, ColumnOut
-app = FastAPI()
+from schemas import CardOut, ColumnOut, StatusOut
+from settings import bakery_today
+
+# Columns where a late delivery counts as overdue (docs/requirements.md, "Board display").
+OVERDUE_COLUMNS = {"Ordered", "Delayed"}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Runs once when the app starts: create any tables that don't exist yet."""
+    create_db_and_tables()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+def is_overdue(card, status, today):
+    """Expected delivery date is before the bakery's today, in Ordered or Delayed."""
+    return (
+        status.name in OVERDUE_COLUMNS
+        and card.expected_delivery_date is not None
+        and card.expected_delivery_date < today
+    )
+
+
+def is_awaiting_payment(card, status):
+    """In the final column (Restocked) but not marked paid yet."""
+    return status.is_final and card.paid_at is None
+
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 
-@app.get("/statuses")
+@app.get("/statuses", response_model=list[StatusOut])
 def list_statuses(session: Session = Depends(get_session)):
     query = select(RestockStatus).order_by(RestockStatus.position)
     return session.exec(query).all()
@@ -28,6 +58,7 @@ def get_board(session: Session = Depends(get_session)):
         .order_by(RestockCard.position, RestockCard.id)
     ).all()
 
+    today = bakery_today()
     board = []
     for status in statuses:
         column_cards = []
@@ -45,9 +76,20 @@ def get_board(session: Session = Depends(get_session)):
                         supplier=suppliers[card.supplier_id].name,
                         expected_delivery_date=card.expected_delivery_date,
                         is_paid=card.paid_at is not None,
+                        delay_reason=card.delay_reason,
+                        delay_next_action=card.delay_next_action,
+                        is_overdue=is_overdue(card, status, today),
+                        awaiting_payment=is_awaiting_payment(card, status),
                     )
                 )
         board.append(
-            ColumnOut(id=status.id, name=status.name, position=status.position, cards=column_cards)
+            ColumnOut(
+                id=status.id,
+                name=status.name,
+                position=status.position,
+                responsible_role=status.responsible_role,
+                is_final=status.is_final,
+                cards=column_cards,
+            )
         )
     return board

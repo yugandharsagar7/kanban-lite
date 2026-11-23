@@ -22,13 +22,18 @@ DATABASE_URL = os.environ.get("DATABASE_URL", DEFAULT_DATABASE_URL)
 
 # 2. Build an engine (the object that manages connections to the database).
 # Used for the app's database and by the tests, so both get the same settings.
-def make_engine(url):
-    """Build an engine for this connection string, with foreign-key checks on for SQLite."""
+def make_engine(url, **settings):
+    """Build an engine for this connection string, with foreign-key checks on for SQLite.
+
+    Extra settings (for example poolclass=StaticPool in tests) are passed on to
+    create_engine.
+    """
     is_sqlite = url.startswith("sqlite")
     # check_same_thread=False lets FastAPI use SQLite from more than one request.
     engine = create_engine(
         url,
         connect_args={"check_same_thread": False} if is_sqlite else {},
+        **settings,
     )
     # SQLite ignores links between tables (for example a card pointing to a
     # supplier that doesn't exist) unless each new connection switches checks on.
