@@ -8,12 +8,14 @@ app = FastAPI()
 
 @app.get("/health")
 def health():
-    return{"status": "ok"}
+    return {"status": "ok"}
+
 
 @app.get("/statuses")
 def list_statuses(session: Session = Depends(get_session)):
     query = select(RestockStatus).order_by(RestockStatus.position)
     return session.exec(query).all()
+
 
 @app.get("/board", response_model=list[ColumnOut])
 def get_board(session: Session = Depends(get_session)):
@@ -23,7 +25,7 @@ def get_board(session: Session = Depends(get_session)):
     cards = session.exec(
         select(RestockCard)
         .where(RestockCard.deleted_at.is_(None))
-        .order_by(RestockCard.position)
+        .order_by(RestockCard.position, RestockCard.id)
     ).all()
 
     board = []
