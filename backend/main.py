@@ -2,11 +2,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
 from sqlmodel import Session, select
+from fastapi.middleware.cors import CORSMiddleware
 
 from database import create_db_and_tables, get_session
 from models import Ingredient, RestockCard, RestockStatus, Supplier
 from schemas import CardOut, ColumnOut, StatusOut
 from settings import bakery_today
+from settings import FRONTEND_ORIGINS
 
 # Columns where a late delivery counts as overdue (docs/requirements.md, "Board display").
 OVERDUE_COLUMNS = {"Ordered", "Delayed"}
@@ -20,6 +22,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=FRONTEND_ORIGINS,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def is_overdue(card, status, today):
