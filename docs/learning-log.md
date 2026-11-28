@@ -4,6 +4,42 @@ What I built each session, the ideas that mattered, the decisions I made and why
 and what went wrong. Newest first. The "In my own words" line in each entry is
 mine to fill in.
 
+## 2026-11-25 to 28: First look at the board in the browser
+
+**Built:** CORS in the API (typed myself). The React + TypeScript app in
+`frontend/` with Vite, and a read-only board (with Claude Code): columns with
+whose turn it is, card tiles, overdue, delay, paid and awaiting-payment labels,
+plus Vitest tests for money, quantity and date formatting.
+
+**Key ideas**
+- CORS lets a browser page from one address read data from another. It protects
+  users' browsers, not the API: `curl` still gets the data. Real protection is
+  sign-in (week 8).
+- The allowed front-end address is a setting (`FRONTEND_ORIGINS`), so Azure needs
+  a configuration change, not a code change.
+- A front-end `.env` is public: everything in it is built into the page. It holds
+  configuration, never passwords or keys.
+- Money on screen is worked out in whole cents, never as a JavaScript float.
+- `new Date("2026-11-20")` means midnight UTC, which is Nov 19 in New York. Dates
+  are shown from their text, with no time zone involved.
+- A component is a function that returns a piece of page. `useState` remembers a
+  value; `useEffect` runs after the page appears, which is where fetching goes.
+- A Terminal window runs one program at a time. Servers never finish, so they
+  need their own windows: API, front end, and one free for commands.
+- New data needs a browser refresh, not a server restart. `--reload` restarts
+  the server when code files are saved.
+- The seed's dates are relative to the day it runs, so demo data ages. Rerun
+  `python seed.py` to freshen it.
+- Before running a tool or package a message suggests (`create-vite`, `httpx2`),
+  check that it's the official one.
+
+**Design decisions (mine)**
+- ESLint rather than Oxlint: matches my VS Code extension and what teams use.
+- A first look at the UI early, before the remaining back-end endpoints.
+- Restocked column header says "Done". Prices are in US dollars.
+
+**In my own words:**
+
 ## 2026-11-21 to 22: Seed data, first data endpoints, accountability
 
 **Built:** `backend/settings.py` and `backend/seed.py` with tests (with Claude Code).
