@@ -34,7 +34,8 @@ the single source of truth. Don't copy those rules into this file.
 
 - `backend/`: the Python API (FastAPI + SQLModel). `main.py` is the app,
   `models.py` defines the database tables.
-- `frontend/`: not started yet.
+- `frontend/`: the React + TypeScript board (Vite). Run from `frontend/`:
+  `npm run dev` (then open http://localhost:5173), `npm test`, `npm run build`.
 - `docs/requirements.md`: the v1 requirements.
 
 Commands (run from `backend/`):

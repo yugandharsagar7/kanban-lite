@@ -124,6 +124,7 @@ complete when it is in Restocked and marked paid.
   the full values.
 - In v1 (SQLite), all money calculations are done in Python, never in the
   database. See docs/decisions/0001-money-storage.md.
+- Prices are in US dollars.
 - Payments: the app records only that an order was paid. It never stores
   card details.
 - All demo data is made up.

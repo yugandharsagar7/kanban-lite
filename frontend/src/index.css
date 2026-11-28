@@ -1,0 +1,43 @@
+/* Page-wide basics. */
+
+:root {
+  --text: #1f2328;
+  --muted: #5b6168;
+  --page: #faf7f2;
+  --column: #f0e9de;
+  --card: #ffffff;
+  --border: #ddd3c4;
+  --overdue: #b42318;
+  --overdue-soft: #fef3f2;
+  --paid: #067647;
+  --paid-soft: #ecfdf3;
+  --awaiting: #93370d;
+  --awaiting-soft: #fffaeb;
+
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--page);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+code {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
